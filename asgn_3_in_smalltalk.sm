@@ -1,0 +1,113 @@
+Object subclass: #NumC
+	instanceVariableNames: 'n'
+	classVariableNames: ''
+	poolDictionaries: '' !
+
+! NumC publicMethods !
+	n: aNumber
+		n := aNumber !
+	n
+		^n ! !
+
+Object subclass: #BoolC
+	instanceVariableNames: 'b'
+	classVariableNames: ''
+	poolDictionaries: '' !
+
+! BoolC publicMethods !
+	b: aBool
+		b := aBool !
+	b
+		^b ! !
+
+Object subclass: #IdC
+	instanceVariableNames: 's'
+	classVariableNames: ''
+	poolDictionaries: '' !
+
+! IdC publicMethods !
+	s:	aSymbol
+		s := aSymbol !
+	s
+		^s ! !
+
+" ========= STRC =========="
+Object subclass: #StrC
+	instanceVariableNames: 'str'
+	classVariableNames: ''
+	poolDictionaries: '' !
+
+! StrC publicMethods !
+	str: aString
+		str := aString !
+	str
+		^str ! !
+
+" ========= APPC =========="
+Object subclass: #AppC
+	instanceVariableNames: 'expr arg1 arg2'
+	classVariableNames: ''
+	poolDictionaries: '' !
+
+! AppC publicMethods !
+	expr: aExpression
+		expr := aExpression !
+	expr
+		^expr ! 
+	arg1: aArg
+		arg1 := aArg !
+	arg1
+		^arg1 !
+	arg2: aArg
+		arg2 := aArg !
+	arg2
+		^arg2 ! !
+
+"defining top-level environment"
+dict := Dictionary new.
+dict at: #'+' put: [:n1 :n2 | n1 + n2].
+dict at: #'-' put: [:n1 :n2 | n1 - n2].
+dict at: #'*' put: [:n1 :n2 | n1 * n2].
+dict at: #'/' put: [:n1 :n2 | n1 / n2].
+
+Transcript show: ((dict at: #'+') value:1 value:2) asString.
+
+"defining interp"
+interp := [:exp |
+           (exp isMemberOf: NumC) ifTrue: [exp n] ifFalse: [
+           (exp isMemberOf: BoolC) ifTrue: [exp b] ifFalse: [
+           (exp isMemberOf: IdC) ifTrue: [dict at:(exp s)] ifFalse: [
+           (exp isMemberOf: StrC) ifTrue: [exp str] ifFalse: [
+           (exp isMemberOf: AppC) ifTrue: [(interp value:(exp expr)) value:(interp value:(exp arg1)) value:(interp value:(exp arg2))] ifFalse: [
+           self error: 'interp - invalid input type',((exp class) printString).
+           ]
+           ]
+           ]
+           ]
+           ]
+           ].
+
+newNum := NumC new.
+newNum n: 1.
+Transcript show: (interp value:newNum) asString;cr.
+
+boolObj := BoolC new.
+boolObj b: true.
+Transcript show: ((interp value:boolObj) printString);cr.
+
+symObj := IdC new.
+symObj s: #'+'.
+Transcript show: ((interp value:symObj ) value:1 value:2) printString;cr.
+
+strObj := StrC new.
+strObj str: 'im a string'.
+Transcript show: (interp value:strObj);cr.
+
+symObj2 := IdC new.
+symObj2 s: #'+'.
+
+appCObj := AppC new.
+appCObj expr: symObj2.
+appCObj arg1: newNum.
+appCObj arg2: newNum.
+Transcript show: (interp value:appCObj) printString;cr.
